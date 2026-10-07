@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Gabriel Chidindu Jevizu!</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-light: #f8fafc;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #818cf8;
+            margin-bottom: 5px;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 16px 0;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .media-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .media-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            padding: 15px;
+        }
+        .media-card img, .media-card iframe {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            max-height: 400px;
+            object-fit: cover;
+        }
+        .media-card iframe {
+            aspect-ratio: 16 / 9;
+            border: none;
+        }
+        .author {
+            font-weight: bold;
+            color: #818cf8;
+            margin-top: 10px;
+        }
+        .instructions {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Gabriel Chidindu Jevizu</h1>
+        <p>Celebrating a milestone birthday! Share your memories below.</p>
+    </header>
+
+    <div class="container">
+        <h2>Add Your Memory</h2>
+        <form id="memoryForm">
+            <label for="name">Your Name:</label>
+            <input type="text" id="name" required placeholder="e.g., Jane Doe">
+
+            <label for="mediaType">Type of Memory:</label>
+            <select id="mediaType" onchange="toggleInputFields()">
+                <option value="photo">High-Res Photo (ImgBB Link)</option>
+                <option value="video">Heavy Video (Google Drive / Streamable Link)</option>
+                <option value="text">Just a Text Message</option>
+            </select>
+
+            <div id="linkContainer">
+                <label id="linkLabel" for="mediaLink">Media Link:</label>
+                <div class="instructions" id="linkHint">Upload your photo to ImgBB and paste the direct image link here.</div>
+                <input type="url" id="mediaLink" placeholder="https://...">
+            </div>
+
+            <label for="message">Message / Note:</label>
+            <textarea id="message" rows="3" placeholder="Write your birthday wish..."></textarea>
+
+            <button type="submit">Post Memory</button>
+        </form>
+    </div>
+
+    <div class="media-grid" id="feed">
+        <!-- Dynamic memories appear here -->
+    </div>
+
+    <script>
+        // Simple local storage for links & text so they stay on the page for visitors
+        document.addEventListener("DOMContentLoaded", loadMemories);
+
+        function toggleInputFields() {
+            const type = document.getElementById("mediaType").value;
+            const linkContainer = document.getElementById("linkContainer");
+            const linkHint = document.getElementById("linkHint");
+            const mediaLink = document.getElementById("mediaLink");
+
+            if (type === "text") {
+                linkContainer.style.display = "none";
+                mediaLink.required = false;
+            } else {
+                linkContainer.style.display = "block";
+                mediaLink.required = true;
+                if (type === "photo") {
+                    linkHint.innerText = "Upload your photo to ImgBB and paste the direct image link here.";
+                } else {
+                    linkHint.innerText = "Paste your Google Drive link (make sure it ends with /preview) or Streamable link.";
+                }
+            }
+        }
+
+        document.getElementById("memoryForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById("name").value;
+            const type = document.getElementById("mediaType").value;
+            let link = document.getElementById("mediaLink").value;
+            const message = document.getElementById("message").value;
+
+            // Auto-fix Google Drive links if user pasted standard sharing link
+            if (type === "video" && link.includes("drive.google.com")) {
+                link = link.replace(/\/view\?usp=sharing|\/view.*/, "/preview");
+            }
+
+            const memory = { name, type, link, message, date: new Date().toLocaleDateString() };
+            
+            let memories = JSON.parse(localStorage.getItem("gabrielMemories") || "[]");
+            memories.unshift(memory); // Add newest to top
+            localStorage.setItem("gabrielMemories", JSON.stringify(memories));
+
+            document.getElementById("memoryForm").reset();
+            toggleInputFields();
+            loadMemories();
+        });
+
+        function loadMemories() {
+            const feed = document.getElementById("feed");
+            const memories = JSON.parse(localStorage.getItem("gabrielMemories") || "[]");
+            
+            feed.innerHTML = "";
+            memories.forEach(mem => {
+                const card = document.createElement("div");
+                card.className = "media-card";
+
+                let mediaHTML = "";
+                if (mem.type === "photo" && mem.link) {
+                    mediaHTML = `<img src="${mem.link}" alt="Birthday Memory" loading="lazy">`;
+                } else if (mem.type === "video" && mem.link) {
+                    mediaHTML = `<iframe src="${mem.link}" allowfullscreen></iframe>`;
+                }
+
+                card.innerHTML = `
+                    ${mediaHTML}
+                    <p>${mem.message}</p>
+                    <div class="author">— ${mem.name} <span style="font-size:11px; color:#64748b; font-weight:normal;">(${mem.date})</span></div>
+                `;
+                feed.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
